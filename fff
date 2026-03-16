@@ -1,0 +1,244 @@
+puzzle_game/
+│
+├── main.py
+│
+├── model/
+│   ├── grid.py
+│   ├── piece.py
+│   └── level.py
+│
+├── view/
+│   └── game_view.py
+│
+└── controller/
+    └── game_controller.py
+
+
+model grid
+class Grid:
+
+    def __init__(self, size):
+        self.size = size
+        self.cells = [[0 for _ in range(size)] for _ in range(size)]
+
+    def can_place(self, piece, x, y):
+
+        for py,row in enumerate(piece.shape):
+            for px,val in enumerate(row):
+
+                if val:
+
+                    gx = x + px
+                    gy = y + py
+
+                    if gx >= self.size or gy >= self.size:
+                        return False
+
+                    if self.cells[gy][gx] == 1:
+                        return False
+
+        return True
+
+
+    def place(self, piece, x, y):
+
+        for py,row in enumerate(piece.shape):
+            for px,val in enumerate(row):
+
+                if val:
+                    self.cells[y+py][x+px] = 1
+
+
+    def is_full(self):
+
+        for row in self.cells:
+            if 0 in row:
+                return False
+
+        return True
+    
+
+class Piece:
+
+    def __init__(self, shape):
+        self.shape = shape
+    
+
+from model.piece import Piece
+
+class Level:
+
+    def __init__(self):
+
+        self.grid_size = 6
+
+        self.pieces = [
+
+            Piece([[1,1],
+                   [1,1]]),
+
+            Piece([[1,1,1]]),
+
+            Piece([[1],
+                   [1],
+                   [1]]),
+
+            Piece([[1,0],
+                   [1,1]])
+        ]
+
+import pygame
+
+class GameView:
+
+    def __init__(self, screen, grid_size):
+
+        self.screen = screen
+        self.grid_size = grid_size
+        self.width = 480
+        self.cell = self.width // grid_size
+
+        self.white = (240,240,240)
+        self.gray = (200,200,200)
+        self.dark = (30,30,30)
+        self.blue = (100,160,255)
+
+        self.font = pygame.font.SysFont(None,40)
+
+
+    def draw_grid(self, grid):
+
+        for y,row in enumerate(grid.cells):
+            for x,val in enumerate(row):
+
+                rect = pygame.Rect(
+                    x*self.cell,
+                    y*self.cell,
+                    self.cell,
+                    self.cell
+                )
+
+                if val:
+                    pygame.draw.rect(self.screen,self.blue,rect)
+
+                pygame.draw.rect(self.screen,self.gray,rect,1)
+
+
+    def draw_pieces(self, pieces, selected):
+
+        start_y = self.width + 20
+
+        for i,piece in enumerate(pieces):
+
+            start_x = 40 + i*100
+
+            for y,row in enumerate(piece.shape):
+                for x,val in enumerate(row):
+
+                    if val:
+
+                        rect = pygame.Rect(
+                            start_x + x*20,
+                            start_y + y*20,
+                            20,
+                            20
+                        )
+
+                        color = self.blue if i==selected else self.gray
+                        pygame.draw.rect(self.screen,color,rect)
+
+
+    def draw_win(self):
+
+        text = self.font.render("NIVEAU TERMINE",True,self.white)
+        self.screen.blit(text,(120,500))
+
+
+class GameController:
+
+    def __init__(self, grid, level):
+
+        self.grid = grid
+        self.pieces = level.pieces
+        self.selected = 0
+
+
+    def select_next(self):
+
+        if self.pieces:
+            self.selected = (self.selected+1) % len(self.pieces)
+
+
+    def try_place(self, x, y):
+
+        if not self.pieces:
+            return
+
+        piece = self.pieces[self.selected]
+
+        if self.grid.can_place(piece,x,y):
+
+            self.grid.place(piece,x,y)
+            self.pieces.pop(self.selected)
+
+            if self.selected >= len(self.pieces):
+                self.selected = 0
+import pygame
+import sys
+
+from model.grid import Grid
+from model.level import Level
+from view.game_view import GameView
+from controller.game_controller import GameController
+
+pygame.init()
+
+WIDTH = 480
+HEIGHT = 600
+
+screen = pygame.display.set_mode((WIDTH,HEIGHT))
+pygame.display.set_caption("Puzzle Blocks")
+
+level = Level()
+grid = Grid(level.grid_size)
+
+controller = GameController(grid,level)
+view = GameView(screen,level.grid_size)
+
+running = True
+
+while running:
+
+    screen.fill((30,30,30))
+
+    for event in pygame.event.get():
+
+        if event.type == pygame.QUIT:
+            running=False
+
+        if event.type == pygame.KEYDOWN:
+
+            if event.key == pygame.K_RIGHT:
+                controller.select_next()
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+
+            mx,my = pygame.mouse.get_pos()
+
+            if my < WIDTH:
+
+                gx = mx // view.cell
+                gy = my // view.cell
+
+                controller.try_place(gx,gy)
+
+    view.draw_grid(grid)
+    view.draw_pieces(controller.pieces,controller.selected)
+
+    if grid.is_full():
+        view.draw_win()
+
+    pygame.display.flip()
+
+pygame.quit()
+sys.exit()
