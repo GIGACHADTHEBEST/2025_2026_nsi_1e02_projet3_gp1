@@ -8,13 +8,13 @@ Louis El-Tantawi
 
 Application pour les sportifs --> quel type de sportif:
 
-identification du pges via un jason (homme/femme/age/taille/poid)
-avez vous des prgm deja fait ou besoin --> force, perte de poid, prise de muscle, cardio
+identification du pges via un jason (homme/femme/age/taille/poids)
+avez vous des prgm deja fait ou besoin --> force, perte de poids, prise de muscle, cardio
 quels outils aveez vous a disposition?
 sport: course à pied et renforcement musculaire
 page d'accueil commune 
 - widget préconstruis: choix des objectifs (petre de poids/bench 100/moins d une minute au 400/prise de masse/ augmenter sa détente...)
-- tracker de poid et séance
+- tracker de poids et séance
 - sommeil --> proposition de lien avc l'app santé ou forme
 - programme
 - phrase de motivation, d'encouragement
